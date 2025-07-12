@@ -28,10 +28,18 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-
 	fmt.Println("uploading thumbnail for video", videoID, "by user", userID)
 
 	// TODO: implement the upload here
+	const maxMemory = 10
+	err = r.ParseMultipartForm(maxMemory)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "Couldn't Parse Multipart Form", err)
+		return
+	}
+
+	file, header, err := r.FormFile("thumbnail")
+	mediaType := header
 
 	respondWithJSON(w, http.StatusOK, struct{}{})
 }
