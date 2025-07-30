@@ -1,10 +1,12 @@
 package main
 
 import (
-	"encoding/base64"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/bootdotdev/learn-file-storage-s3-golang-starter/internal/auth"
 	"github.com/google/uuid"
@@ -40,21 +42,28 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// file, header, err := r.FormFile("thumbnail")
-	file, _, err := r.FormFile("thumbnail")
+	file, header, err := r.FormFile("thumbnail")
+	// file, _, err := r.FormFile("thumbnail")
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Couldn't Get FormFile", err)
 		return
 	}
-	// contentType := header.Header.Get("Content-Type")
+	contentType := header.Header.Get("Content-Type")
 
-	imageData, err := io.ReadAll(file)
+	// imageData, err := io.ReadAll(file)
+	// if err != nil {
+	// 	respondWithError(w, http.StatusBadRequest, "Couldn't Read File", err)
+	// 	return
+	// }
+	// imageDataBase64 := base64.StdEncoding.EncodeToString(imageData)
+	// dataURL := "data:image/png;base64," + imageDataBase64
+
+	filename := filepath.Join(cfg.assetsRoot, videoID.String()+"."+contentType[len(contentType)-3:])
+	assetFile, err := os.Create(filename)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Couldn't Read File", err)
-		return
+		log.Fatalf("Failed to write to file: %v", err)
 	}
-	imageDataBase64 := base64.StdEncoding.EncodeToString(imageData)
-	dataURL := "data:image/png;base64," + imageDataBase64
+	io.Copy(assetFile, file)
 
 	videoData, err := cfg.db.GetVideo(videoID)
 	if err != nil {
@@ -65,9 +74,9 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 	// 	data:      imageData,
 	// 	mediaType: contentType,
 	// }
-	// url := "http://localhost:8091/api/thumbnails/" + videoID.String()
-	// videoData.ThumbnailURL = &url
-	videoData.ThumbnailURL = &dataURL
+	url := "http://localhost:8091/assets/" + videoID.String() + contentType
+	videoData.ThumbnailURL = &url
+	// videoData.ThumbnailURL = &dataURL
 
 	err = cfg.db.UpdateVideo(videoData)
 	if err != nil {
