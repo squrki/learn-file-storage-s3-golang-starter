@@ -74,7 +74,7 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 	// 	data:      imageData,
 	// 	mediaType: contentType,
 	// }
-	url := "http://localhost:8091/assets/" + videoID.String() + contentType
+	url := "http://localhost:8091/assets/" + videoID.String() + "." + contentType[len(contentType)-3:]
 	videoData.ThumbnailURL = &url
 	// videoData.ThumbnailURL = &dataURL
 
