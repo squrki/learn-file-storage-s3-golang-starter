@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"log"
@@ -58,7 +60,14 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 	// imageDataBase64 := base64.StdEncoding.EncodeToString(imageData)
 	// dataURL := "data:image/png;base64," + imageDataBase64
 
-	filename := filepath.Join(cfg.assetsRoot, videoID.String()+"."+contentType[len(contentType)-3:])
+	randomBytes := make([]byte, 32)
+	// nameBytes := make([]byte, 32)
+	rand.Read(randomBytes)
+	// encoder := base64.RawURLEncoding
+	// encoder.Encode(nameBytes, randomBytes)
+	nameBase64 := base64.RawURLEncoding.EncodeToString(randomBytes)
+
+	filename := filepath.Join(cfg.assetsRoot, nameBase64+"."+contentType[len(contentType)-3:])
 	assetFile, err := os.Create(filename)
 	if err != nil {
 		log.Fatalf("Failed to write to file: %v", err)
@@ -74,7 +83,7 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 	// 	data:      imageData,
 	// 	mediaType: contentType,
 	// }
-	url := "http://localhost:8091/assets/" + videoID.String() + "." + contentType[len(contentType)-3:]
+	url := "http://localhost:8091/assets/" + nameBase64 + "." + contentType[len(contentType)-3:]
 	videoData.ThumbnailURL = &url
 	// videoData.ThumbnailURL = &dataURL
 
