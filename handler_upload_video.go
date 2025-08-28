@@ -67,6 +67,7 @@ func (cfg *apiConfig) handlerUploadVideo(w http.ResponseWriter, r *http.Request)
 		respondWithError(w, http.StatusBadRequest, "Couldn't write temp file", err)
 		return
 	}
+
 	defer os.Remove("tubely-upload.mp4")
 	defer tempFile.Close()
 	io.Copy(tempFile, file)
